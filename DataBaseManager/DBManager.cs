@@ -49,9 +49,15 @@ namespace DataBaseManager
     /// <typeparam name="TDocument">The type of the document, must implement IDocument.</typeparam>
     public class DBManager<TDocument> where TDocument : IDocument
     {
-        private readonly IMongoCollection<TDocument> _collection;
         private readonly IMongoClient _client; // Keep client for session management (transactions)
         private readonly IMongoDatabase _database;
+
+        private IMongoCollection<TDocument> GetCollection(string collectionName)
+        {
+            if (string.IsNullOrEmpty(collectionName))
+                throw new ArgumentNullException(nameof(collectionName));
+            return _database.GetCollection<TDocument>(collectionName);
+        }
 
         /// <summary>
         /// Initializes a new instance of the MongoDbRepository class.
@@ -59,16 +65,13 @@ namespace DataBaseManager
         /// </summary>
         /// <param name="connectionString">The MongoDB connection string.</param>
         /// <param name="databaseName">The name of the database.</param>
-        /// <param name="collectionName">The name of the collection.</param>
-        public MongoDbRepository(string connectionString, string databaseName, string collectionName)
+        public MongoDbRepository(string connectionString, string databaseName)
         {
             if (string.IsNullOrEmpty(connectionString)) throw new ArgumentNullException(nameof(connectionString));
             if (string.IsNullOrEmpty(databaseName)) throw new ArgumentNullException(nameof(databaseName));
-            if (string.IsNullOrEmpty(collectionName)) throw new ArgumentNullException(nameof(collectionName));
 
             _client = new MongoClient(connectionString);
             _database = _client.GetDatabase(databaseName);
-            _collection = _database.GetCollection<TDocument>(collectionName);
         }
 
         /// <summary>
@@ -76,15 +79,12 @@ namespace DataBaseManager
         /// This is useful for dependency injection where IMongoDatabase is already configured.
         /// </summary>
         /// <param name="database">The IMongoDatabase instance.</param>
-        /// <param name="collectionName">The name of the collection.</param>
-        public MongoDbRepository(IMongoDatabase database, string collectionName)
+        public MongoDbRepository(IMongoDatabase database)
         {
             if (database == null) throw new ArgumentNullException(nameof(database));
-            if (string.IsNullOrEmpty(collectionName)) throw new ArgumentNullException(nameof(collectionName));
 
             _database = database;
             _client = _database.Client; // Get client from database
-            _collection = _database.GetCollection<TDocument>(collectionName);
         }
 
 
@@ -96,7 +96,7 @@ namespace DataBaseManager
         /// </summary>
         /// <param name="document">The document to insert.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
-        public virtual async Task InsertOneAsync(TDocument document, CancellationToken cancellationToken = default)
+        public virtual async Task InsertOneAsync(string collectionName, TDocument document, CancellationToken cancellationToken = default)
         {
             if (document == null) throw new ArgumentNullException(nameof(document));
 
@@ -106,7 +106,8 @@ namespace DataBaseManager
             }
             // MongoDB driver automatically generates ObjectId if Id is null or empty for string representation.
             // If Id is already set (e.g. client-generated ObjectId as string), it will be used.
-            await _collection.InsertOneAsync(document, null, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            await collection.InsertOneAsync(document, null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -115,7 +116,7 @@ namespace DataBaseManager
         /// </summary>
         /// <param name="documents">The collection of documents to insert.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
-        public virtual async Task InsertManyAsync(IEnumerable<TDocument> documents, CancellationToken cancellationToken = default)
+        public virtual async Task InsertManyAsync(string collectionName, IEnumerable<TDocument> documents, CancellationToken cancellationToken = default)
         {
             if (documents == null || !documents.Any()) throw new ArgumentNullException(nameof(documents));
 
@@ -128,8 +129,9 @@ namespace DataBaseManager
                 }
             }
             // For more complex bulk operations (e.g., mixed inserts, updates, deletes with error handling per item),
-            // consider using _collection.BulkWriteAsync.
-            await _collection.InsertManyAsync(documents, new InsertManyOptions { IsOrdered = false }, cancellationToken).ConfigureAwait(false);
+            // consider using BulkWriteAsync on the collection.
+            var collection = GetCollection(collectionName);
+            await collection.InsertManyAsync(documents, new InsertManyOptions { IsOrdered = false }, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -138,14 +140,15 @@ namespace DataBaseManager
         /// <param name="id">The Id of the document (ObjectId as string).</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The document if found; otherwise, null.</returns>
-        public virtual async Task<TDocument> GetByIdAsync(string id, CancellationToken cancellationToken = default)
+        public virtual async Task<TDocument> GetByIdAsync(string collectionName, string id, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
             {
                 throw new ArgumentException("Invalid ObjectId string format.", nameof(id));
             }
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, id);
-            return await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.Find(filter).FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -154,9 +157,10 @@ namespace DataBaseManager
         /// </summary>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A list of all documents.</returns>
-        public virtual async Task<List<TDocument>> GetAllAsync(CancellationToken cancellationToken = default)
+        public virtual async Task<List<TDocument>> GetAllAsync(string collectionName, CancellationToken cancellationToken = default)
         {
-            return await _collection.Find(Builders<TDocument>.Filter.Empty).ToListAsync(cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.Find(Builders<TDocument>.Filter.Empty).ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -165,9 +169,10 @@ namespace DataBaseManager
         /// <param name="filterExpression">The LINQ expression to filter documents.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A list of matching documents.</returns>
-        public virtual async Task<List<TDocument>> FindAsync(Expression<Func<TDocument, bool>> filterExpression, CancellationToken cancellationToken = default)
+        public virtual async Task<List<TDocument>> FindAsync(string collectionName, Expression<Func<TDocument, bool>> filterExpression, CancellationToken cancellationToken = default)
         {
-            return await _collection.Find(filterExpression).ToListAsync(cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.Find(filterExpression).ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -178,9 +183,10 @@ namespace DataBaseManager
         /// <param name="options">Optional find options (e.g., sort, projection, limit, skip).</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A list of matching documents.</returns>
-        public virtual async Task<List<TDocument>> FindAsync(FilterDefinition<TDocument> filter, FindOptions<TDocument, TDocument> options = null, CancellationToken cancellationToken = default)
+        public virtual async Task<List<TDocument>> FindAsync(string collectionName, FilterDefinition<TDocument> filter, FindOptions<TDocument, TDocument> options = null, CancellationToken cancellationToken = default)
         {
-            return await _collection.Find(filter, options).ToListAsync(cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.Find(filter, options).ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -191,7 +197,7 @@ namespace DataBaseManager
         /// <param name="document">The new document.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>True if the document was replaced; false otherwise.</returns>
-        public virtual async Task<bool> ReplaceOneAsync(string id, TDocument document, CancellationToken cancellationToken = default)
+        public virtual async Task<bool> ReplaceOneAsync(string collectionName, string id, TDocument document, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
             {
@@ -204,7 +210,8 @@ namespace DataBaseManager
             document.Id = id;
 
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, id);
-            var result = await _collection.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = false }, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.ReplaceOneAsync(filter, document, new ReplaceOptions { IsUpsert = false }, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
@@ -216,9 +223,10 @@ namespace DataBaseManager
         /// <param name="options">Optional update options (e.g., upsert).</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>True if at least one document was modified; false otherwise.</returns>
-        public virtual async Task<bool> UpdateOneAsync(FilterDefinition<TDocument> filter, UpdateDefinition<TDocument> update, UpdateOptions options = null, CancellationToken cancellationToken = default)
+        public virtual async Task<bool> UpdateOneAsync(string collectionName, FilterDefinition<TDocument> filter, UpdateDefinition<TDocument> update, UpdateOptions options = null, CancellationToken cancellationToken = default)
         {
-            var result = await _collection.UpdateOneAsync(filter, update, options, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.UpdateOneAsync(filter, update, options, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
@@ -231,7 +239,7 @@ namespace DataBaseManager
         /// <param name="value">The new value for the field.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>True if the document was updated; false otherwise.</returns>
-        public virtual async Task<bool> UpdateAttributeAsync<TField>(string id, Expression<Func<TDocument, TField>> fieldExpression, TField value, CancellationToken cancellationToken = default)
+        public virtual async Task<bool> UpdateAttributeAsync<TField>(string collectionName, string id, Expression<Func<TDocument, TField>> fieldExpression, TField value, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
             {
@@ -239,7 +247,8 @@ namespace DataBaseManager
             }
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, id);
             var update = Builders<TDocument>.Update.Set(fieldExpression, value);
-            var result = await _collection.UpdateOneAsync(filter, update, null, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.UpdateOneAsync(filter, update, null, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
@@ -251,9 +260,10 @@ namespace DataBaseManager
         /// <param name="options">Optional update options.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The number of documents modified.</returns>
-        public virtual async Task<long> UpdateManyAsync(FilterDefinition<TDocument> filter, UpdateDefinition<TDocument> update, UpdateOptions options = null, CancellationToken cancellationToken = default)
+        public virtual async Task<long> UpdateManyAsync(string collectionName, FilterDefinition<TDocument> filter, UpdateDefinition<TDocument> update, UpdateOptions options = null, CancellationToken cancellationToken = default)
         {
-            var result = await _collection.UpdateManyAsync(filter, update, options, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.UpdateManyAsync(filter, update, options, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged ? result.ModifiedCount : 0;
         }
 
@@ -263,14 +273,15 @@ namespace DataBaseManager
         /// <param name="id">The Id of the document to delete.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>True if the document was deleted; false otherwise.</returns>
-        public virtual async Task<bool> DeleteOneAsync(string id, CancellationToken cancellationToken = default)
+        public virtual async Task<bool> DeleteOneAsync(string collectionName, string id, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
             {
                 throw new ArgumentException("Invalid ObjectId string format.", nameof(id));
             }
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, id);
-            var result = await _collection.DeleteOneAsync(filter, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.DeleteOneAsync(filter, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged && result.DeletedCount > 0;
         }
 
@@ -280,9 +291,10 @@ namespace DataBaseManager
         /// <param name="filterExpression">The LINQ expression to filter documents for deletion.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The number of documents deleted.</returns>
-        public virtual async Task<long> DeleteManyAsync(Expression<Func<TDocument, bool>> filterExpression, CancellationToken cancellationToken = default)
+        public virtual async Task<long> DeleteManyAsync(string collectionName, Expression<Func<TDocument, bool>> filterExpression, CancellationToken cancellationToken = default)
         {
-            var result = await _collection.DeleteManyAsync(filterExpression, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.DeleteManyAsync(filterExpression, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged ? result.DeletedCount : 0;
         }
 
@@ -292,9 +304,10 @@ namespace DataBaseManager
         /// <param name="filter">The MongoDB FilterDefinition.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The number of documents deleted.</returns>
-        public virtual async Task<long> DeleteManyAsync(FilterDefinition<TDocument> filter, CancellationToken cancellationToken = default)
+        public virtual async Task<long> DeleteManyAsync(string collectionName, FilterDefinition<TDocument> filter, CancellationToken cancellationToken = default)
         {
-            var result = await _collection.DeleteManyAsync(filter, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var result = await collection.DeleteManyAsync(filter, cancellationToken).ConfigureAwait(false);
             return result.IsAcknowledged ? result.DeletedCount : 0;
         }
 
@@ -308,9 +321,10 @@ namespace DataBaseManager
         /// <param name="filterExpression">The LINQ expression to filter documents.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The count of matching documents.</returns>
-        public virtual async Task<long> CountAsync(Expression<Func<TDocument, bool>> filterExpression, CancellationToken cancellationToken = default)
+        public virtual async Task<long> CountAsync(string collectionName, Expression<Func<TDocument, bool>> filterExpression, CancellationToken cancellationToken = default)
         {
-            return await _collection.CountDocumentsAsync(filterExpression, null, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.CountDocumentsAsync(filterExpression, null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -319,9 +333,10 @@ namespace DataBaseManager
         /// <param name="filter">The MongoDB FilterDefinition.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The count of matching documents.</returns>
-        public virtual async Task<long> CountAsync(FilterDefinition<TDocument> filter, CancellationToken cancellationToken = default)
+        public virtual async Task<long> CountAsync(string collectionName, FilterDefinition<TDocument> filter, CancellationToken cancellationToken = default)
         {
-            return await _collection.CountDocumentsAsync(filter, null, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.CountDocumentsAsync(filter, null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -335,6 +350,7 @@ namespace DataBaseManager
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A list of documents for the specified page.</returns>
         public virtual async Task<List<TDocument>> GetPagedAsync(
+            string collectionName,
             Expression<Func<TDocument, bool>> filterExpression,
             int pageNumber,
             int pageSize,
@@ -344,7 +360,8 @@ namespace DataBaseManager
             if (pageNumber < 1) throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be 1 or greater.");
             if (pageSize < 1) throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be 1 or greater.");
 
-            var findFluent = _collection.Find(filterExpression);
+            var collection = GetCollection(collectionName);
+            var findFluent = collection.Find(filterExpression);
             if (sortDefinition != null)
             {
                 findFluent = findFluent.Sort(sortDefinition);
@@ -361,6 +378,7 @@ namespace DataBaseManager
         /// Retrieves a paged list of documents matching a MongoDB FilterDefinition.
         /// </summary>
         public virtual async Task<List<TDocument>> GetPagedAsync(
+            string collectionName,
             FilterDefinition<TDocument> filter,
             int pageNumber,
             int pageSize,
@@ -376,7 +394,8 @@ namespace DataBaseManager
             options.Limit = pageSize;
             options.Sort = sortDefinition; // Overwrites if already set in options
 
-            return await _collection.Find(filter, options).ToListAsync(cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.Find(filter, options).ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
 
@@ -418,10 +437,11 @@ namespace DataBaseManager
         /// <param name="options">Optional index creation options (e.g., unique, sparse).</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>The name of the created index.</returns>
-        public virtual async Task<string> CreateIndexAsync(IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default)
+        public virtual async Task<string> CreateIndexAsync(string collectionName, IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default)
         {
             var indexModel = new CreateIndexModel<TDocument>(keys, options);
-            return await _collection.Indexes.CreateOneAsync(indexModel, null, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            return await collection.Indexes.CreateOneAsync(indexModel, null, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -434,11 +454,13 @@ namespace DataBaseManager
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A list of result documents.</returns>
         public virtual async Task<List<TResult>> AggregateAsync<TResult>(
+            string collectionName,
             PipelineDefinition<TDocument, TResult> pipeline,
             AggregateOptions options = null,
             CancellationToken cancellationToken = default)
         {
-            var cursor = await _collection.AggregateAsync(pipeline, options, cancellationToken).ConfigureAwait(false);
+            var collection = GetCollection(collectionName);
+            var cursor = await collection.AggregateAsync(pipeline, options, cancellationToken).ConfigureAwait(false);
             return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -446,7 +468,7 @@ namespace DataBaseManager
         /// Provides direct access to the IMongoCollection for operations not covered by this repository.
         /// Use with caution, as it bypasses repository logic (like setting CreatedAtUtc automatically).
         /// </summary>
-        public IMongoCollection<TDocument> Collection => _collection;
+        public IMongoCollection<TDocument> GetCollectionHandle(string collectionName) => GetCollection(collectionName);
 
         #endregion
 
