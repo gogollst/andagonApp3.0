@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using MongoDB.Bson;
@@ -9,7 +10,8 @@ namespace andagonApp3.Data
     public class MongoUserStore :
         IUserStore<ApplicationUser>,
         IUserPasswordStore<ApplicationUser>,
-        IUserEmailStore<ApplicationUser>
+        IUserEmailStore<ApplicationUser>,
+        IUserRoleStore<ApplicationUser>
     {
         private readonly DBManager _dbManager;
         private IMongoCollection<ApplicationUser> Collection =>
@@ -124,6 +126,35 @@ namespace andagonApp3.Data
         {
             user.NormalizedEmail = normalizedEmail;
             return Task.CompletedTask;
+        }
+
+        // Roles
+        public Task AddToRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
+        {
+            if (!user.Roles.Contains(roleName))
+            {
+                user.Roles.Add(roleName);
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
+        {
+            user.Roles.Remove(roleName);
+            return Task.CompletedTask;
+        }
+
+        public Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken)
+            => Task.FromResult<IList<string>>(user.Roles);
+
+        public Task<bool> IsInRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
+            => Task.FromResult(user.Roles.Contains(roleName));
+
+        public async Task<IList<ApplicationUser>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+        {
+            var filter = Builders<ApplicationUser>.Filter.AnyEq(u => u.Roles, roleName);
+            var users = await Collection.Find(filter).ToListAsync(cancellationToken);
+            return users;
         }
     }
 }
