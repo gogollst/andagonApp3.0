@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using MongoDB.Bson;
-using DataBaseManager;
 
 namespace andagonApp3.Data
 {
