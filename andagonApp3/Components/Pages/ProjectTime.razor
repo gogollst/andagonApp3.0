@@ -1,0 +1,45 @@
+@page "/projecttime"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Projektzeiterfassung</PageTitle>
+
+<h1>Projektzeiterfassung</h1>
+
+<p>Zeigt die gebuchten Projektstunden eines Monats.</p>
+
+<EditForm Model="this" OnValidSubmit="LoadTimesheets">
+    <InputNumber @bind-Value="EmployeeId" class="form-control" placeholder="Mitarbeiter-ID" />
+    <InputDate @bind-Value="SelectedMonth" class="form-control" />
+    <button class="btn btn-primary" type="submit">Laden</button>
+</EditForm>
+
+@if (Timesheets != null)
+{
+    <table class="table">
+        <thead>
+            <tr><th>Datum</th><th>Beschreibung</th><th>Stunden</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var ts in Timesheets)
+        {
+            <tr>
+                <td>@ts.date</td>
+                <td>@ts.description</td>
+                <td>@ts.unit_amount</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private long EmployeeId { get; set; }
+    private DateTime SelectedMonth { get; set; } = DateTime.Today;
+    private List<TimesheetResult>? Timesheets;
+
+    private async Task LoadTimesheets()
+    {
+        Timesheets = await OdooManager.GetTimesheetsByMonth(SelectedMonth, EmployeeId);
+    }
+}

@@ -1,0 +1,32 @@
+@page "/vacationrequest"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Urlaubsantrag</PageTitle>
+
+<h1>Urlaubsantrag</h1>
+
+<EditForm Model="this" OnValidSubmit="SubmitRequest">
+    <InputNumber @bind-Value="EmployeeId" class="form-control" placeholder="Mitarbeiter-ID" />
+    <InputDate @bind-Value="StartDate" class="form-control" />
+    <InputNumber @bind-Value="Days" class="form-control" placeholder="Tage" />
+    <button class="btn btn-primary" type="submit">Antrag stellen</button>
+</EditForm>
+
+@if (StatusMessage != null)
+{
+    <p>@StatusMessage</p>
+}
+
+@code {
+    private long EmployeeId { get; set; }
+    private DateTime StartDate { get; set; } = DateTime.Today;
+    private int Days { get; set; } = 1;
+    private string? StatusMessage;
+
+    private async Task SubmitRequest()
+    {
+        await OdooManager.RequestVacationLeave(EmployeeId, StartDate, Days);
+        StatusMessage = "Urlaub beantragt.";
+    }
+}

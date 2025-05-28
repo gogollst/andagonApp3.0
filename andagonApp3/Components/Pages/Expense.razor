@@ -1,0 +1,46 @@
+@page "/expense"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Spesenabrechnung</PageTitle>
+
+<h1>Spesenabrechnung</h1>
+
+<EditForm Model="this" OnValidSubmit="CreateExpense">
+    <InputNumber @bind-Value="EmployeeId" class="form-control" placeholder="Mitarbeiter-ID" />
+    <InputDate @bind-Value="ExpenseDate" class="form-control" />
+    <InputText @bind-Value="Description" class="form-control" placeholder="Beschreibung" />
+    <InputNumber @bind-Value="Amount" class="form-control" />
+    <InputNumber @bind-Value="ProductId" class="form-control" placeholder="Produkt-ID" />
+    <InputFile OnChange="LoadFile" />
+    <button class="btn btn-primary" type="submit">Anlegen</button>
+</EditForm>
+
+@if (StatusMessage != null)
+{
+    <p>@StatusMessage</p>
+}
+
+@code {
+    private long EmployeeId { get; set; }
+    private DateTime ExpenseDate { get; set; } = DateTime.Today;
+    private string Description { get; set; } = string.Empty;
+    private double Amount { get; set; }
+    private long ProductId { get; set; }
+    private byte[]? Attachment;
+    private string? StatusMessage;
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        Attachment = buffer;
+    }
+
+    private async Task CreateExpense()
+    {
+        await OdooManager.CreateExpense(EmployeeId, ExpenseDate, Description, Amount, ProductId, Attachment);
+        StatusMessage = "Spesenabrechnung erstellt.";
+    }
+}

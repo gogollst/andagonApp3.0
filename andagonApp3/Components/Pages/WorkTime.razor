@@ -1,0 +1,33 @@
+@page "/worktime"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Arbeitszeiterfassung</PageTitle>
+
+<h1>Arbeitszeiterfassung</h1>
+
+<p>Geben Sie den Zeitraum und die Mitarbeiter-ID ein, um die gearbeiteten Stunden zu ermitteln.</p>
+
+<EditForm Model="this" OnValidSubmit="LoadHours">
+    <InputNumber @bind-Value="EmployeeId" class="form-control" placeholder="Mitarbeiter-ID" />
+    <InputDate @bind-Value="StartDate" class="form-control" />
+    <InputDate @bind-Value="EndDate" class="form-control" />
+    <button class="btn btn-primary" type="submit">Berechnen</button>
+</EditForm>
+
+@if (TotalHours != null)
+{
+    <p>Gesamtstunden: @TotalHours</p>
+}
+
+@code {
+    private long EmployeeId { get; set; }
+    private DateTime StartDate { get; set; } = DateTime.Today;
+    private DateTime EndDate { get; set; } = DateTime.Today;
+    private double? TotalHours;
+
+    private async Task LoadHours()
+    {
+        TotalHours = await OdooManager.GetTotalWorkHours(EmployeeId, StartDate, EndDate);
+    }
+}

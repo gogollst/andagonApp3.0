@@ -1,0 +1,43 @@
+@page "/uploaddocument"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Buchhaltungsdokument</PageTitle>
+
+<h1>Dokument zur Buchhaltung hochladen</h1>
+
+<EditForm Model="this" OnValidSubmit="Upload">
+    <InputNumber @bind-Value="AccountMoveId" class="form-control" placeholder="account.move ID" />
+    <InputText @bind-Value="DocumentName" class="form-control" placeholder="Dateiname" />
+    <InputFile OnChange="LoadFile" />
+    <button class="btn btn-primary" type="submit">Upload</button>
+</EditForm>
+
+@if (StatusMessage != null)
+{
+    <p>@StatusMessage</p>
+}
+
+@code {
+    private long AccountMoveId { get; set; }
+    private string DocumentName { get; set; } = string.Empty;
+    private byte[]? DocumentData;
+    private string? StatusMessage;
+
+    private async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        var buffer = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffer);
+        DocumentData = buffer;
+    }
+
+    private async Task Upload()
+    {
+        if (DocumentData != null)
+        {
+            await OdooManager.UploadDocumentToAccountMove(AccountMoveId, DocumentName, DocumentData);
+            StatusMessage = "Dokument hochgeladen.";
+        }
+    }
+}

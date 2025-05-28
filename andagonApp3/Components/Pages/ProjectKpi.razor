@@ -1,0 +1,29 @@
+@page "/projectkpi"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Projekt-KPIs</PageTitle>
+
+<h1>Projekt-KPIs</h1>
+
+<EditForm Model="this" OnValidSubmit="LoadKpi">
+    <InputNumber @bind-Value="ProjectId" class="form-control" placeholder="Projekt-ID" />
+    <button class="btn btn-primary" type="submit">Laden</button>
+</EditForm>
+
+@if (Kpi != null)
+{
+    <p>Budget: @Kpi.budget</p>
+    <p>Gesamtstunden: @Kpi.total_hours</p>
+    <p>Abrechenbare Stunden: @Kpi.billable_hours</p>
+}
+
+@code {
+    private long ProjectId { get; set; }
+    private ProjectKPI? Kpi;
+
+    private async Task LoadKpi()
+    {
+        Kpi = await OdooManager.GetProjectKPI(ProjectId);
+    }
+}
