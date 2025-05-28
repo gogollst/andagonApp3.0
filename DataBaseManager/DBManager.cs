@@ -60,6 +60,14 @@ public class DBManager
         return docType.ToString();
     }
 
+    /// <summary>
+    /// Provides direct access to a MongoDB collection for the given document type.
+    /// </summary>
+    public IMongoCollection<TDocument> GetCollection<TDocument>(DocumentType docType) where TDocument : class
+    {
+        return _database.GetCollection<TDocument>(GetCollectionName(docType));
+    }
+
     #region CREATE Operations
 
     /// <summary>
