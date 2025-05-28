@@ -1,5 +1,6 @@
 @page "/projecttime"
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
 @using andagonApp3.Models
 @using MongoDB.Driver
 @using System.Security.Claims
@@ -64,7 +65,7 @@
 
 @code {
     private BookingInput Input = new();
-    private List<SimpleResult> projects = new();
+    private List<OdooManager.SimpleResult> projects = new();
     private List<ProjectTimeBooking> bookings = new();
     private DateTime selectedMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
