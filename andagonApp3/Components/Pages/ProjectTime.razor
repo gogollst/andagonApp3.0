@@ -1,0 +1,140 @@
+@page "/projecttime"
+@rendermode InteractiveServer
+@using andagonApp3.Models
+@using MongoDB.Driver
+@using System.Security.Claims
+@using System.ComponentModel.DataAnnotations
+@attribute [Authorize(Roles = "User")]
+
+<PageTitle>Projektzeiterfassung</PageTitle>
+
+<h3>Projektzeiterfassung</h3>
+
+<EditForm Model="Input" OnValidSubmit="SaveBooking" class="mb-4">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="row g-3">
+        <div class="col-md-4">
+            <select class="form-select" @bind="Input.ProjectId">
+                <option value="">Projekt wählen...</option>
+                @foreach (var p in projects)
+                {
+                    <option value="@p.id">@p.name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <InputDate @bind-Value="Input.Date" class="form-control" />
+        </div>
+        <div class="col-md-2">
+            <InputText @bind-Value="Input.Hours" class="form-control" placeholder="HH:mm" />
+        </div>
+        <div class="col-md-4">
+            <InputText @bind-Value="Input.Description" class="form-control" placeholder="Tätigkeit" />
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Buchen</button>
+</EditForm>
+
+<h4>Buchungen</h4>
+<div class="mb-2">
+    <input type="month" value="@selectedMonth.ToString("yyyy-MM")" @onchange="MonthChanged" class="form-control" style="width:auto" />
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Projekt</th>
+            <th>Datum</th>
+            <th>Stunden</th>
+            <th>Tätigkeit</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var b in bookings)
+        {
+            <tr>
+                <td>@b.ProjectName</td>
+                <td>@b.Date.ToString("yyyy-MM-dd")</td>
+                <td>@b.Hours.ToString("0.##")</td>
+                <td>@b.Description</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private BookingInput Input = new();
+    private List<SimpleResult> projects = new();
+    private List<ProjectTimeBooking> bookings = new();
+    private DateTime selectedMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    protected override async Task OnInitializedAsync()
+    {
+        projects = await OdooManager.GetProjects();
+        await LoadBookings();
+    }
+
+    private async Task SaveBooking()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null || string.IsNullOrEmpty(Input.ProjectId)) return;
+
+        var project = projects.FirstOrDefault(p => p.id.ToString() == Input.ProjectId);
+        var hours = ParseHours(Input.Hours);
+        var booking = new ProjectTimeBooking
+        {
+            UserId = userId,
+            ProjectId = project?.id ?? 0,
+            ProjectName = project?.name,
+            Date = Input.Date.Date,
+            Hours = hours,
+            Description = Input.Description
+        };
+        await DBManager.CreateAsync(DocumentType.ProjectTimeBooking, booking);
+        Input = new();
+        await LoadBookings();
+    }
+
+    private static double ParseHours(string value)
+    {
+        if (TimeSpan.TryParse(value, out var ts)) return ts.TotalHours;
+        if (double.TryParse(value, out var d)) return d;
+        return 0;
+    }
+
+    private async Task LoadBookings()
+    {
+        var auth = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = auth.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null) return;
+
+        var start = selectedMonth;
+        var end = start.AddMonths(1).AddTicks(-1);
+        var filter = Builders<ProjectTimeBooking>.Filter.And(
+            Builders<ProjectTimeBooking>.Filter.Eq(b => b.UserId, userId),
+            Builders<ProjectTimeBooking>.Filter.Gte(b => b.Date, start),
+            Builders<ProjectTimeBooking>.Filter.Lte(b => b.Date, end));
+        bookings = await DBManager.FindAsync<ProjectTimeBooking>(DocumentType.ProjectTimeBooking, filter);
+    }
+
+    private async Task MonthChanged(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString() + "-01", out var dt))
+        {
+            selectedMonth = new DateTime(dt.Year, dt.Month, 1);
+            await LoadBookings();
+        }
+    }
+
+    private class BookingInput
+    {
+        [Required]
+        public string ProjectId { get; set; } = "";
+        [Required]
+        public DateTime Date { get; set; } = DateTime.Today;
+        [Required]
+        public string Hours { get; set; } = "";
+        public string? Description { get; set; }
+    }
+}
