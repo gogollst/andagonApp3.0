@@ -17,7 +17,8 @@
 
 .top-row {
     min-height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
+    /* Tailwind gray-800 at 50% opacity */
+    background-color: rgba(31, 41, 55, 0.5);
 }
 
 .navbar-brand {
@@ -80,7 +81,8 @@
     }
 
     .nav-item ::deep .nav-link {
-        color: #d7d7d7;
+        /* Tailwind gray-300 text */
+        color: #d1d5db;
         background: none;
         border: none;
         border-radius: 4px;
@@ -92,12 +94,14 @@
     }
 
 .nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
+    /* Tailwind gray-100 background */
+    background-color: rgba(243,244,246,0.4);
     color: white;
 }
 
 .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
+    /* subtle hover using gray-100 */
+    background-color: rgba(243,244,246,0.1);
     color: white;
 }
 
