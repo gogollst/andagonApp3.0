@@ -1,0 +1,86 @@
+@page "/admin/users"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<andagonApp3.Data.ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+
+<PageTitle>User Management</PageTitle>
+
+<h1>User Management</h1>
+
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        <select @bind="selectedRoles[user.Id]" class="form-select form-select-sm">
+                            @foreach (var role in roles)
+                            {
+                                <option value="@role">@role</option>
+                            }
+                        </select>
+                    </td>
+                    <td>@user.IsActive</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary me-1" @onclick="() => UpdateRole(user)">Save Role</button>
+                        <button class="btn btn-sm btn-secondary" @onclick="() => ToggleActive(user)">Toggle Active</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<andagonApp3.Data.ApplicationUser>? users;
+    private List<string> roles = new();
+    private Dictionary<string, string> selectedRoles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = UserManager.Users.ToList();
+        roles = RoleManager.Roles.Select(r => r.Name!).ToList();
+        foreach (var user in users)
+        {
+            var userRoles = await UserManager.GetRolesAsync(user);
+            selectedRoles[user.Id] = userRoles.FirstOrDefault() ?? roles.FirstOrDefault() ?? string.Empty;
+        }
+    }
+
+    private async Task UpdateRole(andagonApp3.Data.ApplicationUser user)
+    {
+        var currentRoles = await UserManager.GetRolesAsync(user);
+        await UserManager.RemoveFromRolesAsync(user, currentRoles);
+        if (!string.IsNullOrEmpty(selectedRoles[user.Id]))
+        {
+            await UserManager.AddToRoleAsync(user, selectedRoles[user.Id]);
+        }
+    }
+
+    private async Task ToggleActive(andagonApp3.Data.ApplicationUser user)
+    {
+        user.IsActive = !user.IsActive;
+        await UserManager.UpdateAsync(user);
+    }
+}
