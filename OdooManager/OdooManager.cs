@@ -167,6 +167,15 @@ namespace OdooManager
             return products.ToList();
         }
 
+        // Retrieves all projects from Odoo (id and name)
+        public async Task<List<SimpleResult>> GetProjects()
+        {
+            var searchParams = new OdooSearchParameters("project.project", new OdooDomainFilter());
+            var fieldParams = new OdooFieldParameters(new List<string> { "id", "name" });
+            var projects = await odooClient.Get<SimpleResult[]>(searchParams, fieldParams);
+            return projects.ToList();
+        }
+
 // 5. Belegerfassung für die Finanzbuchhaltung
         public async Task UploadDocumentToAccountMove(long accountMoveId, string documentName, byte[] documentData)
         {
