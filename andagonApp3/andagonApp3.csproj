@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataBaseManager\DataBaseManager.csproj" />
+    <ProjectReference Include="..\OdooManager\OdooManager.csproj" />
   </ItemGroup>
 
 </Project>

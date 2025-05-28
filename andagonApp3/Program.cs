@@ -3,7 +3,7 @@ using andagonApp3.Components.Account;
 using andagonApp3.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using DataBaseManager;
+using OdooManager;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +25,7 @@ builder.Services.AddAuthentication(options =>
 
 var mongoSection = builder.Configuration.GetSection("MongoDb");
 builder.Services.AddSingleton(new DBManager(mongoSection["DatabaseName"], mongoSection["ConnectionString"]));
+builder.Services.AddSingleton(new OdooManager.OdooManager());
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddUserStore<MongoUserStore>()

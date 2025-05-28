@@ -16,6 +16,7 @@ namespace OdooManager
 
         public OdooManager()
         {
+            Authenticate().GetAwaiter().GetResult(); // Synchronous call for initialization
         }
 
 //Authentifizierung
