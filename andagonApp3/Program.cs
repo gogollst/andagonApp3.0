@@ -16,12 +16,16 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
+builder.Services.AddSingleton<ILookupNormalizer, RolePreservingLookupNormalizer>();
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+
+builder.Services.AddAuthorization();
 
 var mongoSection = builder.Configuration.GetSection("MongoDb");
 builder.Services.AddSingleton(new DBManager(mongoSection["DatabaseName"], mongoSection["ConnectionString"]));
@@ -48,6 +52,9 @@ app.UseHttpsRedirection();
 
 
 app.UseAntiforgery();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
