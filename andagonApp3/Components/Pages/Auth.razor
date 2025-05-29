@@ -2,12 +2,17 @@
 
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize]
+@attribute [Authorize(Roles = "User")]
 
 <PageTitle>Auth</PageTitle>
 
 <h1>You are authenticated</h1>
 
-<AuthorizeView>
-    Hello @context.User.Identity?.Name!
+<AuthorizeView Roles="User">
+    <Authorized>
+        <p class="text-success">Sie sind angemeldet.</p>
+    </Authorized>
+    <NotAuthorized>
+        <p class="text-danger">Sie sind nicht berechtigt.</p>
+    </NotAuthorized>
 </AuthorizeView>
