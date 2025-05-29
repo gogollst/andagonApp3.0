@@ -129,19 +129,21 @@ namespace andagonApp3.Data
         }
 
         // Roles
-        public Task AddToRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
+        public async Task AddToRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
         {
             if (!user.Roles.Contains(roleName))
             {
                 user.Roles.Add(roleName);
+                await UpdateAsync(user, cancellationToken);
             }
-            return Task.CompletedTask;
         }
 
-        public Task RemoveFromRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
+        public async Task RemoveFromRoleAsync(ApplicationUser user, string roleName, CancellationToken cancellationToken)
         {
-            user.Roles.Remove(roleName);
-            return Task.CompletedTask;
+            if (user.Roles.Remove(roleName))
+            {
+                await UpdateAsync(user, cancellationToken);
+            }
         }
 
         public Task<IList<string>> GetRolesAsync(ApplicationUser user, CancellationToken cancellationToken)
