@@ -79,6 +79,10 @@
             identityErrors = result.Errors;
             return;
         }
+        else
+        {
+            await UserManager.AddToRoleAsync(user, "User"); // Add user to default role
+        }
 
         Logger.LogInformation("User created a new account with password.");
 
