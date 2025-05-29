@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gogoll Vision - Coaching for Executives & Entrepreneurs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .hero-section {
+            /* Bild von der Originalseite eingefügt */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://gogollvision.com/wp-content/uploads/2021/09/Frame-80-min.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .floating-whatsapp {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25D366;
+            color: white;
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+        }
+
+            .floating-whatsapp:hover {
+                transform: scale(1.1);
+            }
+
+        .calendar-placeholder {
+            border: 2px dashed #cbd5e1; /* Tailwind gray-300 */
+            padding: 4rem 2rem;
+            text-align: center;
+            background-color: #f7fafc; /* Tailwind gray-100 */
+        }
+        /* Verbesserte Lesbarkeit für Textblöcke */
+        .prose-custom {
+            font-size: 1.125rem; /* text-lg */
+            line-height: 1.75; /* leading-relaxed */
+        }
+
+            .prose-custom p, .prose-custom ul {
+                margin-bottom: 1.25rem; /* mb-5 */
+            }
+
+            .prose-custom ul {
+                list-style-position: outside;
+                padding-left: 1.5rem; /* ml-6 relative to parent if needed, or direct */
+            }
+
+            .prose-custom li {
+                padding-left: 0.5rem; /* pl-2 */
+                margin-bottom: 0.5rem; /* mb-2 */
+            }
+
+            .prose-custom strong {
+                font-weight: 600; /* semibold */
+            }
+        /* Stil für das Profilbild, um die Größe zu kontrollieren */
+        .profile-image {
+            max-width: 350px; /* Maximale Breite des Bildes */
+            width: 100%; /* Responsive Breite */
+            height: auto; /* Höhe automatisch anpassen */
+            object-fit: cover; /* Stellt sicher, dass das Bild gut aussieht, auch wenn es beschnitten wird */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div>
+                <a href="index.html" class="text-2xl font-bold text-blue-600">Gogoll<span class="text-pink-500">Vision</span></a>
+            </div>
+            <nav class="hidden md:flex items-center space-x-6">
+                <a href="index.html#home" class="text-gray-600 hover:text-blue-500 transition duration-300">Home</a>
+                <a href="index.html#about" class="text-gray-600 hover:text-blue-500 transition duration-300">Über Mich</a>
+                <a href="index.html#services" class="text-gray-600 hover:text-blue-500 transition duration-300">Angebote</a>
+                <a href="index.html#contact" class="text-gray-600 hover:text-blue-500 transition duration-300">Kontakt</a>
+                <a href="index.html#booking" class="text-gray-600 hover:text-blue-500 transition duration-300">Session Buchen</a>
+
+                <div class="flex space-x-2">
+                    <a href="?lang=en" class="px-3 py-1 text-sm rounded-md hover:bg-gray-200 transition duration-300">EN</a>
+                    <a href="?lang=de" class="px-3 py-1 text-sm rounded-md hover:bg-gray-200 transition duration-300">DE</a>
+                    <a href="?lang=ru" class="px-3 py-1 text-sm rounded-md hover:bg-gray-200 transition duration-300">RU</a>
+                </div>
+            </nav>
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-600 focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg">
+            <a href="index.html#home" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-blue-500 transition duration-300">Home</a>
+            <a href="index.html#about" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-blue-500 transition duration-300">Über Mich</a>
+            <a href="index.html#services" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-blue-500 transition duration-300">Angebote</a>
+            <a href="index.html#contact" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-blue-500 transition duration-300">Kontakt</a>
+            <a href="index.html#booking" class="block px-6 py-3 text-gray-600 hover:bg-gray-100 hover:text-blue-500 transition duration-300">Session Buchen</a>
+            <div class="px-6 py-3 border-t border-gray-200">
+                <h4 class="text-sm font-semibold text-gray-500 mb-2">Sprache</h4>
+                <a href="?lang=en" class="block py-1 text-gray-600 hover:text-blue-500">English</a>
+                <a href="?lang=de" class="block py-1 text-gray-600 hover:text-blue-500">Deutsch</a>
+                <a href="?lang=ru" class="block py-1 text-gray-600 hover:text-blue-500">Русский</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section id="home" class="hero-section text-white py-20 md:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+                    Empower your leadership.
+                </h1>
+                <p class="text-xl md:text-2xl mb-8">
+                    Coaching for international executives & women entrepreneurs.
+                </p>
+                <a href="#booking" class="bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                    Book your free discovery call
+                </a>
+            </div>
+        </section>
+
+        <section id="about" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-12 text-blue-600">Über Mich: Yana Gogoll</h2>
+                <div class="flex flex-col md:flex-row items-center md:space-x-12">
+                    <div class="md:w-1/3 mb-8 md:mb-0 flex justify-center">
+                        <img src="https://gogollvision.com/wp-content/uploads/2021/09/yana-gogoll-1-1-scaled.jpg" alt="Yana Gogoll" class="rounded-lg shadow-xl profile-image" onerror="this.onerror=null; this.src='https://placehold.co/350x350/e0e7ff/333333?text=Yana+Gogoll';">
+                    </div>
+                    <div class="md:w-2/3 prose-custom text-gray-700">
+                        <p>Herzlich willkommen! Ich bin Yana Gogoll, zertifizierter <strong>Systemischer Business Coach (Steinbeis Hochschule Berlin)</strong> und erfahrene Beraterin mit einer Leidenschaft für die Stärkung von Führungskräften und Unternehmerinnen.</p>
+                        <p>Mit über 15 Jahren Erfahrung in internationalen Konzernen und im Mittelstand, insbesondere in den Bereichen Organisationsentwicklung, Change Management und HR, verstehe ich die Herausforderungen, vor denen Sie stehen. Meine Expertise liegt darin, Potenziale zu erkennen, Klarheit zu schaffen und nachhaltige Veränderungen zu ermöglichen.</p>
+                        <p>Mein Coaching-Ansatz ist <strong>systemisch, lösungs- und ressourcenorientiert</strong>. Ich glaube fest daran, dass jeder Mensch die Ressourcen für positive Veränderungen in sich trägt. Gemeinsam entwickeln wir maßgeschneiderte Strategien, die Sie Ihren Zielen näherbringen – sei es in Ihrer Führungsrolle, als Expat oder auf Ihrem unternehmerischen Weg.</p>
+                        <p><strong>Meine Werte im Coaching:</strong> Wertschätzung, Vertrauen, Transparenz und eine Prise Humor. Ich freue mich darauf, Sie kennenzulernen und Sie auf Ihrer Reise zu begleiten!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="services" class="py-16 bg-gray-100">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-12 text-blue-600">Meine Angebote für Ihren Erfolg</h2>
+                <div class="grid md:grid-cols-2 gap-x-12 gap-y-8 prose-custom text-gray-700">
+                    <div>
+                        <h3 class="text-2xl font-semibold text-blue-500 mb-3">Systemisches Business Coaching</h3>
+                        <p>Individuelles Coaching, das auf Ihre spezifischen beruflichen Herausforderungen und Ziele zugeschnitten ist. Wir fokussieren uns auf:</p>
+                        <ul>
+                            <li><strong>Executive Coaching:</strong> Stärkung Ihrer Führungskompetenzen, strategische Entscheidungsfindung und souveränes Auftreten.</li>
+                            <li><strong>Female Leadership Coaching:</strong> Gezielte Unterstützung für Frauen in Führungspositionen zur vollen Entfaltung ihres Potenzials. (Mehr dazu auf der <a href="female-leadership.html" class="text-pink-500 hover:underline">Detailseite</a>)</li>
+                            <li><strong>Expat Coaching:</strong> Begleitung internationaler Fach- und Führungskräfte bei der erfolgreichen Integration und Karrieregestaltung im Ausland. (Mehr dazu auf der <a href="expat-coaching.html" class="text-pink-500 hover:underline">Detailseite</a>)</li>
+                            <li><strong>Entrepreneur Coaching:</strong> Strategische Partnerschaft für Gründer:innen und Unternehmer:innen – von der Vision bis zur Umsetzung. (Mehr dazu auf der <a href="entrepreneurs.html" class="text-pink-500 hover:underline">Detailseite</a>)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold text-blue-500 mb-3">Weitere Schwerpunkte</h3>
+                        <ul>
+                            <li><strong>Team Coaching & Entwicklung:</strong> Verbesserung der Zusammenarbeit, Kommunikation und Performance in Teams.</li>
+                            <li><strong>Karrierecoaching:</strong> Neuorientierung, berufliche Weiterentwicklung und das Erreichen Ihrer Karriereziele.</li>
+                            <li><strong>Change Management Begleitung:</strong> Unterstützung bei der Gestaltung und Bewältigung von Veränderungsprozessen in Organisationen.</li>
+                        </ul>
+                        <p class="mt-6">Alle Coaching-Formate können <strong>online (weltweit)</strong> oder nach Absprache auch <strong>persönlich</strong> im Raum Köln/Bonn oder an Ihrem Unternehmensstandort stattfinden.</p>
+                        <p><strong>Sprachen:</strong> Deutsch, Englisch, Russisch.</p>
+                    </div>
+                </div>
+                <div class="text-center mt-12">
+                    <a href="#booking" class="bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        Jetzt kostenfreies Erstgespräch vereinbaren
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="target-groups" class="py-16 bg-white">
+            <div class="container mx-auto px-6">
+                <h2 class="text-3xl font-bold text-center mb-4 text-blue-600">Ich bin...</h2>
+                <p class="text-center text-lg text-gray-700 mb-12">Finden Sie das Coaching, das zu Ihrer einzigartigen Reise passt.</p>
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 text-center">
+                        <div class="text-4xl text-pink-500 mb-4">🚺</div>
+                        <h3 class="text-2xl font-semibold mb-3 text-gray-800">Frau in Führung</h3>
+                        <p class="text-gray-600 mb-6">Maßgeschneidertes Coaching, um Herausforderungen zu meistern und Ihre Wirkung zu verstärken.</p>
+                        <a href="female-leadership.html" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300">Mehr erfahren</a>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 text-center">
+                        <div class="text-4xl text-pink-500 mb-4">🌍</div>
+                        <h3 class="text-2xl font-semibold mb-3 text-gray-800">Expat Executive</h3>
+                        <p class="text-gray-600 mb-6">Orientierung für Erfolg in internationalen Rollen und neuen kulturellen Kontexten.</p>
+                        <a href="expat-coaching.html" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300">Mehr erfahren</a>
+                    </div>
+                    <div class="bg-gray-50 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 text-center">
+                        <div class="text-4xl text-pink-500 mb-4">🚀</div>
+                        <h3 class="text-2xl font-semibold mb-3 text-gray-800">Unternehmer:in</h3>
+                        <p class="text-gray-600 mb-6">Strategisches Coaching, um Ihr Unternehmen erfolgreich aufzubauen, zu wachsen und zu führen.</p>
+                        <a href="entrepreneurs.html" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300">Mehr erfahren</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="booking" class="py-16 bg-blue-50">
+            <div class="container mx-auto px-6 md:w-2/3 lg:w-1/2">
+                <h2 class="text-3xl font-bold text-center mb-12 text-blue-600">Buchen Sie Ihr kostenfreies Erstgespräch</h2>
+                <div class="calendar-placeholder rounded-lg">
+                    <p class="text-xl text-gray-700 font-semibold mb-2">Online-Kalender in Kürze verfügbar!</p>
+                    <p class="text-gray-600">Hier wird Ihr Calendly- oder TidyCal-Kalender eingebettet.</p>
+                    <p class="text-gray-600 mt-4">In der Zwischenzeit nutzen Sie bitte das Kontaktformular oder WhatsApp.</p>
+                </div>
+                <p class="text-center mt-8">
+                    <a href="#contact" class="text-blue-600 hover:text-blue-700 font-semibold underline">Oder nutzen Sie das Kontaktformular</a>
+                </p>
+            </div>
+        </section>
+
+        <section id="contact" class="py-16 bg-white">
+            <div class="container mx-auto px-6 md:w-2/3 lg:w-1/2">
+                <h2 class="text-3xl font-bold text-center mb-12 text-blue-600">Kontaktieren Sie mich (Alternative)</h2>
+                <form id="contact-form" class="bg-gray-50 p-8 rounded-xl shadow-xl space-y-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Name*</label>
+                        <input type="text" name="name" id="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">E-Mail*</label>
+                        <input type="email" name="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                    </div>
+                    <div>
+                        <label for="topic" class="block text-sm font-medium text-gray-700 mb-1">Ihr Anliegen (Optional)</label>
+                        <textarea name="topic" id="topic" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-3 px-6 rounded-lg text-lg transition duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+                            Anfrage senden
+                        </button>
+                    </div>
+                </form>
+                <div id="form-message" class="mt-4 text-center"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; <span id="current-year"></span> Gogoll Vision. Alle Rechte vorbehalten.</p>
+            <p class="text-sm mt-2">
+                <a href="privacy-policy.html" class="hover:text-blue-400 transition duration-300">Datenschutz</a> |
+                <a href="impressum.html" class="hover:text-blue-400 transition duration-300">Impressum</a>
+            </p>
+            <div class="mt-4">
+                <a href="#" aria-label="LinkedIn" class="text-gray-400 hover:text-white mx-2 transition duration-300"><i class="fab fa-linkedin-in fa-lg"></i></a>
+                <a href="#" aria-label="Facebook" class="text-gray-400 hover:text-white mx-2 transition duration-300"><i class="fab fa-facebook-f fa-lg"></i></a>
+                <a href="#" aria-label="Instagram" class="text-gray-400 hover:text-white mx-2 transition duration-300"><i class="fab fa-instagram fa-lg"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/IHRE_WHATSAPP_NUMMER" target="_blank" class="floating-whatsapp" aria-label="Chat on WhatsApp">
+        <i class="fab fa-whatsapp fa-2x"></i>
+    </a>
+
+    <script>
+        // Mobile Menu Toggle
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = href;
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                        }
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('header nav a, #mobile-menu a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('index.html#')) {
+                // Handled by above
+            } else if (href && href.startsWith('#') && !window.location.pathname.includes('index.html')) {
+                link.href = `index.html${href}`;
+            }
+        });
+
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        const contactForm = document.getElementById('contact-form');
+        const formMessage = document.getElementById('form-message');
+
+        if(contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                formMessage.textContent = 'Sende Anfrage...';
+                formMessage.className = 'mt-4 text-center text-blue-600';
+
+                const formData = new FormData(contactForm);
+                // Hier könnten Sie die formData z.B. mit fetch an ein Backend senden
+                console.log('Formulardaten:', Object.fromEntries(formData));
+
+                setTimeout(() => {
+                    formMessage.textContent = 'Vielen Dank! Ihre Anfrage wurde gesendet.';
+                    formMessage.className = 'mt-4 text-center text-green-600';
+                    contactForm.reset();
+                }, 2000);
+            });
+        }
+
+        // WICHTIG: Ersetzen Sie "IHRE_WHATSAPP_NUMMER"
+        // WICHTIG: Ersetzen Sie Platzhalter-Logo und Social Media Links
+        // WICHTIG: Kalender-Einbettungscode in der Sektion #booking einfügen.
+        // WICHTIG: Erstellen Sie privacy-policy.html und impressum.html mit Inhalt.
+    </script>
+</body>
+</html>

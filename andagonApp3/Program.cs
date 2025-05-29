@@ -31,9 +31,10 @@ builder.Services.AddSingleton(new OdooManager.OdooManager());
 
 builder.Services.AddSingleton<ILookupNormalizer, RolePreservingLookupNormalizer>();
 
+// Fix: Replace the incorrect method call with the correct one
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddUserStore<MongoUserStore>()
-    .AddUserClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
+    .AddClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>() // Correct method
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
@@ -50,7 +51,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.UseAntiforgery();
 
