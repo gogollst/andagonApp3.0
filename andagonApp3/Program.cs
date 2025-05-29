@@ -23,6 +23,8 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
+builder.Services.AddAuthorization();
+
 var mongoSection = builder.Configuration.GetSection("MongoDb");
 builder.Services.AddSingleton(new DBManager(mongoSection["DatabaseName"], mongoSection["ConnectionString"]));
 builder.Services.AddSingleton(new OdooManager.OdooManager());
@@ -31,6 +33,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddUserStore<MongoUserStore>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ApplicationUserClaimsPrincipalFactory>();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
@@ -48,6 +52,9 @@ app.UseHttpsRedirection();
 
 
 app.UseAntiforgery();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
