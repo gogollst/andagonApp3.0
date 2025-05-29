@@ -33,6 +33,7 @@ builder.Services.AddSingleton<ILookupNormalizer, RolePreservingLookupNormalizer>
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddUserStore<MongoUserStore>()
+    .AddUserClaimsPrincipalFactory<ApplicationUserClaimsPrincipalFactory>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
