@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using System.Linq;
 
 namespace andagonApp3.Data
 {
@@ -11,7 +12,11 @@ namespace andagonApp3.Data
         IUserStore<ApplicationUser>,
         IUserPasswordStore<ApplicationUser>,
         IUserEmailStore<ApplicationUser>,
-        IUserRoleStore<ApplicationUser>
+        IUserRoleStore<ApplicationUser>,
+        IUserPhoneNumberStore<ApplicationUser>,
+        IUserAuthenticatorKeyStore<ApplicationUser>,
+        IUserTwoFactorStore<ApplicationUser>,
+        IUserTwoFactorRecoveryCodeStore<ApplicationUser>
     {
         private readonly DBManager _dbManager;
         private IMongoCollection<ApplicationUser> Collection =>
@@ -155,6 +160,91 @@ namespace andagonApp3.Data
             var filter = Builders<ApplicationUser>.Filter.AnyEq(u => u.Roles, roleName);
             var users = await Collection.Find(filter).ToListAsync(cancellationToken);
             return users;
+        }
+
+        // Phone Number
+        public Task<string?> GetPhoneNumberAsync(ApplicationUser user, CancellationToken cancellationToken)
+            => Task.FromResult(user.PhoneNumber);
+
+        public Task SetPhoneNumberAsync(ApplicationUser user, string? phoneNumber, CancellationToken cancellationToken)
+        {
+            user.PhoneNumber = phoneNumber;
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> GetPhoneNumberConfirmedAsync(ApplicationUser user, CancellationToken cancellationToken)
+            => Task.FromResult(user.PhoneNumberConfirmed);
+
+        public Task SetPhoneNumberConfirmedAsync(ApplicationUser user, bool confirmed, CancellationToken cancellationToken)
+        {
+            user.PhoneNumberConfirmed = confirmed;
+            return Task.CompletedTask;
+        }
+
+        public async Task<ApplicationUser?> FindByPhoneNumberAsync(string phoneNumber, CancellationToken cancellationToken)
+        {
+            var filter = Builders<ApplicationUser>.Filter.Eq(u => u.PhoneNumber, phoneNumber);
+            return await Collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
+        }
+
+        // Authenticator Key
+        public Task<string> GetAuthenticatorKeyAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.AuthenticatorKey ?? string.Empty);
+        }
+
+        public Task SetAuthenticatorKeyAsync(ApplicationUser user, string key, CancellationToken cancellationToken)
+        {
+            user.AuthenticatorKey = key;
+            return Task.CompletedTask;
+        }
+
+        // Two-Factor Authentication
+        public Task<bool> GetTwoFactorEnabledAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.TwoFactorEnabled);
+        }
+
+        public Task SetTwoFactorEnabledAsync(ApplicationUser user, bool enabled, CancellationToken cancellationToken)
+        {
+            user.TwoFactorEnabled = enabled;
+            return Task.CompletedTask;
+        }
+
+        // Two-Factor Recovery Codes
+        public Task<int> CountCodesAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            if (user.RecoveryCodes == null)
+            {
+                return Task.FromResult(0);
+            }
+
+            return Task.FromResult(user.RecoveryCodes.Count(c => !c.IsRedeemed));
+        }
+
+        public Task<bool> RedeemCodeAsync(ApplicationUser user, string code, CancellationToken cancellationToken)
+        {
+            if (user.RecoveryCodes == null)
+            {
+                return Task.FromResult(false);
+            }
+
+            var recoveryCode = user.RecoveryCodes.FirstOrDefault(
+                c => c.Code == code && !c.IsRedeemed);
+                
+            if (recoveryCode != null)
+            {
+                recoveryCode.IsRedeemed = true;
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
+        }
+
+        public Task ReplaceCodesAsync(ApplicationUser user, IEnumerable<string> recoveryCodes, CancellationToken cancellationToken)
+        {
+            user.RecoveryCodes = recoveryCodes.Select(code => new RecoveryCode { Code = code, IsRedeemed = false }).ToList();
+            return Task.CompletedTask;
         }
     }
 }
