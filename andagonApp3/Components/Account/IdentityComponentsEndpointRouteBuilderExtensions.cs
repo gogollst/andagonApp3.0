@@ -41,11 +41,13 @@ namespace Microsoft.AspNetCore.Routing
             });
 
             accountGroup.MapPost("/Logout", async (
+                HttpContext context,
                 ClaimsPrincipal user,
                 [FromServices] SignInManager<ApplicationUser> signInManager,
                 [FromForm] string returnUrl) =>
             {
                 await signInManager.SignOutAsync();
+                context.Response.Cookies.Delete("AuthSession");
                 return TypedResults.LocalRedirect($"~/{returnUrl}");
             });
 
