@@ -3,6 +3,8 @@ using andagonApp3.Components.Account;
 using andagonApp3.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using OdooManager;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +56,16 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.IsAuthenticated == true &&
+        !context.User.HasClaim("remember_me", "true") &&
+        !context.Request.Cookies.ContainsKey("AuthSession"))
+    {
+        await context.SignOutAsync(IdentityConstants.ApplicationScheme);
+    }
+    await next();
+});
 app.UseAuthorization();
 
 app.MapStaticAssets();
