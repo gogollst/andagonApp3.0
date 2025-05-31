@@ -16,4 +16,8 @@
     <ProjectReference Include="..\OdooManager\OdooManager.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Template\assets\images\notification\mBf6PT1EuIeXUtmR\" />
+  </ItemGroup>
+
 </Project>
